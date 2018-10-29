@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="800">
     <Grid>
-        <Canvas Height="800" Width="800" Name="Main_Canvas" Grid.Row="1" Grid.Column="0">
-        </Canvas>
+        <Canvas x:Name="canv" Height="400" Width="400" Grid.Column="0" Margin="10,0,385,372.5"/>
+        <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Window>

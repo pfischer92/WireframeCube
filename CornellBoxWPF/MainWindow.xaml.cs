@@ -1,4 +1,5 @@
 ﻿
+using CornellBoxWPF.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -16,11 +17,9 @@ namespace CornellBoxWPF
     public partial class MainWindow : Window
     {
         public static WriteableBitmap image { get; set; }
-
-        public static float GAMMA = 2.2f;
+        
         public static int bytesPerPixel = 3;
-        public static int antiAliasing = 5;
-        // top
+                                                                    // top
         public static List<Vector3> points = new List<Vector3>() { new Vector3(-1, -1, -1),
                                                                    new Vector3(1,-1,-1),
                                                                    new Vector3(1,1,-1),
@@ -42,11 +41,13 @@ namespace CornellBoxWPF
             new Vector3(3,2,6),
             new Vector3(3,6,7),
             new Vector3(1,0,4),
-            new Vector3(1,4,5)};
+            new Vector3(5,4,1)
+        };
 
 
         public MainWindow()
         {
+            image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
@@ -55,16 +56,78 @@ namespace CornellBoxWPF
         {
             // Registering to the XAML rendering loop
             CompositionTarget.Rendering += CompositionTarget_Rendering;
+            RenderCanvas();
+        }
+
+        private void RenderCanvas()
+        {
+            Polygon p = new Polygon();
+            p.Stroke = Brushes.Black;
+            Vector3 v1 = new Vector3(0, 0, 5);
+            Point[] trianglePoints = new Point[points.Count];
+            
+            for (int i = 0; i < points.Count; i++)
+            {
+                // Translate all points
+                points[i] += v1;
+
+                // Calc x' and y'
+                trianglePoints[i] = new Point((int)(canv.Width * points[i].X / points[i].Z + canv.Width / 2), (int)(canv.Width * points[i].Y / points[i].Z + canv.Height / 2));
+            }
+            
+            foreach(var triangle in triangleIdx)
+            {
+                Point p1 = trianglePoints[(int)triangle.X];
+                Point p2 = trianglePoints[(int)triangle.Y];
+                Point p3 = trianglePoints[(int)triangle.Z];
+
+                p.Points.Add(p1);
+                p.Points.Add(p2);
+                p.Points.Add(p3);
+            }
+
+            canv.Children.Add(p);
         }
         // Rendering loop handler
         void CompositionTarget_Rendering(object sender, object e)
         {
-            Polygon p = new Polygon();
-            p.Stroke = Brushes.Black;
-            p.Points.Add(new Point(0, 0));
-            p.Points.Add(new Point(100, 0));
-            p.Points.Add(new Point(0, 100));
-            Main_Canvas.Children.Add(p);
+            
+        }
+
+        public void Print()
+        {
+            byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            for (int x = 0; x < image.PixelWidth; x++)
+            {
+                for (int y = 0; y < image.PixelHeight; y++)
+                {
+                    Vector3 color = Vector3.Zero;
+
+                    // Point P
+                    Vector2 coord = new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1);
+
+                    // Calc u and v
+                    for (int i = 0; i < points.Count; i++)
+                    {
+
+                    }
+
+                        // if(u >= 0 && v >= 0 && u + v < 1){
+                        // drawPixel(x,y, color);
+                        //}
+
+
+                        colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
+                }
+            }
+
+            image.Lock();
+            image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), colourData, image.PixelWidth * bytesPerPixel, 0);
+            image.Unlock();
+
+            img.Source = image;
         }
     }
 }
