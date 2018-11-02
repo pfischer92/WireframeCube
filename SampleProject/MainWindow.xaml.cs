@@ -68,7 +68,7 @@ namespace SampleProject
             // Doing the various matrix operations
             device.Render(mera, mesh);
             // Flushing the back buffer into the front buffer
-            img.Source = device.Present();
+            device.Present();
         }
     }
 }

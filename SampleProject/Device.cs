@@ -37,23 +37,15 @@ namespace SampleProject
 
         // Once everything is ready, we can flush the back buffer
         // into the front buffer. 
-        public WriteableBitmap Present()
+        public void Present()
         {
-            for (int x = 0; x < image.PixelWidth; x++)
-            {
-                for (int y = 0; y < image.PixelHeight; y++)
-                {
-                    backBuffer[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = 255;            // Red
-                    backBuffer[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = 255;        // Blue
-                    backBuffer[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = 0;        // Green
-                }
-            }
-
-            image.Lock();
-            image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), backBuffer, image.PixelWidth * bytesPerPixel, 0);
-            image.Unlock();
-
-            return image;
+            //using (var stream = image.PixelBuffer.AsStream())
+            //{
+            //    // writing our byte[] back buffer into our WriteableBitmap stream
+            //    stream.Write(backBuffer, 0, backBuffer.Length);
+            //}
+            //// request a redraw of the entire bitmap
+            //image.Invalidate();
         }
 
         // Called to put a pixel on screen at a specific X,Y coordinates

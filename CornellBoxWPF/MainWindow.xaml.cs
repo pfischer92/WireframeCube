@@ -3,6 +3,7 @@ using CornellBoxWPF.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,6 +20,8 @@ namespace CornellBoxWPF
         public static WriteableBitmap image { get; set; }
 
         public static byte[] colourData { get; set; }
+
+        public static double degree = 0.0;
 
         public static int bytesPerPixel = 3;
                                                                     // top
@@ -59,32 +62,60 @@ namespace CornellBoxWPF
         {
             // Registering to the XAML rendering loop
             CompositionTarget.Rendering += CompositionTarget_Rendering;
-            RenderCanvas();
         }
+        
 
-        private void RenderCanvas()
+        // Rendering loop handler
+        void CompositionTarget_Rendering(object sender, object e)
         {
+            canv.Children.Clear();
             Polygon p = new Polygon();
             p.Stroke = Brushes.Black;
             Vector3 v1 = new Vector3(0, 0, 5);
             Point[] trianglePoints = new Point[points.Count];
-            
+            List<Vector3> copy = new List<Vector3>(points);
+
             for (int i = 0; i < points.Count; i++)
             {
                 // Rotate cube by certain degree
-                
+                degree += 20;
 
-                Quaternion q = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 30);
-                Vector3 rotatedVector = q * points[i];
+                Matrix4x4 rotMatX = new Matrix4x4();
+                rotMatX.M11 = 1;
+                rotMatX.M22 = (float)Math.Cos(degree);
+                rotMatX.M23 = -(float)Math.Sin(degree);
+                rotMatX.M32 = (float)Math.Sin(degree);
+                rotMatX.M33 = (float)Math.Cos(degree);
+                rotMatX.M44 = 1;
+
+                Matrix4x4 rotMatY = new Matrix4x4();
+                rotMatY.M11 = (float)Math.Cos(degree);
+                rotMatY.M13 = (float)Math.Sin(degree);
+                rotMatY.M22 = 1;
+                rotMatY.M31 = -(float)Math.Sin(degree);
+                rotMatY.M33 = (float)Math.Cos(degree);
+                rotMatY.M44 = 1;
+
+                Matrix4x4 rotMatZ = new Matrix4x4();
+                rotMatZ.M11 = (float)Math.Cos(degree);
+                rotMatZ.M12 = -(float)Math.Sin(degree);
+                rotMatZ.M21 = (float)Math.Sin(degree);
+                rotMatZ.M22 = -(float)Math.Cos(degree);
+                rotMatZ.M33 = 1;
+                rotMatZ.M44 = 1;
+
+                copy[i] = Vector3.Transform(copy[i], rotMatX);
+                //copy[i] = Vector3.Transform(copy[i], rotMatY);
+                //copy[i] = Vector3.Transform(copy[i], rotMatZ);
 
                 // Translate all points
-                points[i] += v1;
+                copy[i] += v1;
 
                 // Calc x' and y'
-                trianglePoints[i] = new Point((int)(canv.Width * points[i].X / points[i].Z + canv.Width / 2), (int)(canv.Width * points[i].Y / points[i].Z + canv.Height / 2));
+                trianglePoints[i] = new Point((int)(canv.Width * copy[i].X / copy[i].Z + canv.Width / 2), (int)(canv.Width * copy[i].Y / copy[i].Z + canv.Height / 2));
             }
-            
-            foreach(var triangle in triangleIdx)
+
+            foreach (var triangle in triangleIdx)
             {
                 Point p1 = trianglePoints[(int)triangle.X];
                 Point p2 = trianglePoints[(int)triangle.Y];
@@ -96,41 +127,37 @@ namespace CornellBoxWPF
             }
 
             canv.Children.Add(p);
+
+
+            //for (int x = 0; x < image.PixelWidth; x++)
+            //{
+            //    for (int y = 0; y < image.PixelHeight; y++)
+            //    {
+
+            //        // Calc u and v
+            //        for (int i = 0; i < points.Count; i++)
+            //        {
+
+            //        }
+
+            // if(u >= 0 && v >= 0 && u + v < 1){
+            // drawPixel(x,y, color);
+            //}
+
+
+            //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+            //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
+            //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
         }
-        
+            //}
 
-        // Rendering loop handler
-        void CompositionTarget_Rendering(object sender, object e)
-        {
-            for (int x = 0; x < image.PixelWidth; x++)
-            {
-                for (int y = 0; y < image.PixelHeight; y++)
-                {
-
-                    // Calc u and v
-                    for (int i = 0; i < points.Count; i++)
-                    {
-
-                    }
-
-                    // if(u >= 0 && v >= 0 && u + v < 1){
-                    // drawPixel(x,y, color);
-                    //}
-
-
-                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
-                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
-                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
-                }
-            }
-
-            image.Lock();
-            image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), colourData, image.PixelWidth * bytesPerPixel, 0);
-            image.Unlock();
+            //image.Lock();
+            //image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), colourData, image.PixelWidth * bytesPerPixel, 0);
+            //image.Unlock();
 
             //img.Source = image;
 
-        }
+        //}
     }
 }
 
