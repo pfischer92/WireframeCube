@@ -17,7 +17,9 @@ namespace CornellBoxWPF
     public partial class MainWindow : Window
     {
         public static WriteableBitmap image { get; set; }
-        
+
+        public static byte[] colourData { get; set; }
+
         public static int bytesPerPixel = 3;
                                                                     // top
         public static List<Vector3> points = new List<Vector3>() { new Vector3(-1, -1, -1),
@@ -48,6 +50,7 @@ namespace CornellBoxWPF
         public MainWindow()
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
+            colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
@@ -68,6 +71,12 @@ namespace CornellBoxWPF
             
             for (int i = 0; i < points.Count; i++)
             {
+                // Rotate cube by certain degree
+                
+
+                Quaternion q = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 30);
+                Vector3 rotatedVector = q * points[i];
+
                 // Translate all points
                 points[i] += v1;
 
@@ -88,23 +97,15 @@ namespace CornellBoxWPF
 
             canv.Children.Add(p);
         }
+        
+
         // Rendering loop handler
         void CompositionTarget_Rendering(object sender, object e)
         {
-            
-        }
-
-        public void Print()
-        {
-            byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             for (int x = 0; x < image.PixelWidth; x++)
             {
                 for (int y = 0; y < image.PixelHeight; y++)
                 {
-                    Vector3 color = Vector3.Zero;
-
-                    // Point P
-                    Vector2 coord = new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1);
 
                     // Calc u and v
                     for (int i = 0; i < points.Count; i++)
@@ -112,14 +113,14 @@ namespace CornellBoxWPF
 
                     }
 
-                        // if(u >= 0 && v >= 0 && u + v < 1){
-                        // drawPixel(x,y, color);
-                        //}
+                    // if(u >= 0 && v >= 0 && u + v < 1){
+                    // drawPixel(x,y, color);
+                    //}
 
 
-                        colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
-                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
-                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
+                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
+                    //colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
                 }
             }
 
@@ -127,7 +128,8 @@ namespace CornellBoxWPF
             image.WritePixels(new Int32Rect(0, 0, image.PixelWidth, image.PixelHeight), colourData, image.PixelWidth * bytesPerPixel, 0);
             image.Unlock();
 
-            img.Source = image;
+            //img.Source = image;
+
         }
     }
 }
