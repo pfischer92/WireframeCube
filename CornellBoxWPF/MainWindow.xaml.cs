@@ -1,11 +1,8 @@
-﻿
-using CornellBoxWPF.Helpers;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
-using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -17,6 +14,8 @@ namespace CornellBoxWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly Stopwatch stopwatch = new Stopwatch();
+        private double frameCounter;
         public static WriteableBitmap image { get; set; }
 
         public static byte[] colourData { get; set; }
@@ -63,11 +62,22 @@ namespace CornellBoxWPF
             // Registering to the XAML rendering loop
             CompositionTarget.Rendering += CompositionTarget_Rendering;
         }
-        
+
+        private void CalcFrameRate()
+        {
+            if (frameCounter++ == 0){ stopwatch.Start(); }
+            
+            var frameRate = (long)(frameCounter / stopwatch.Elapsed.TotalSeconds);
+            if (frameRate > 0)
+            {
+                frame_rate.Content = frameRate.ToString() + " fps";
+            }
+        }
 
         // Rendering loop handler
         void CompositionTarget_Rendering(object sender, object e)
         {
+            CalcFrameRate();
             canv.Children.Clear();
             Polygon p = new Polygon();
             p.Stroke = Brushes.Black;
@@ -75,38 +85,13 @@ namespace CornellBoxWPF
             Point[] trianglePoints = new Point[points.Count];
             List<Vector3> copy = new List<Vector3>(points);
 
+            // Rotate cube by certain degree
+            degree += 0.01f;
+
             for (int i = 0; i < points.Count; i++)
             {
-                // Rotate cube by certain degree
-                degree += 20;
-
-                Matrix4x4 rotMatX = new Matrix4x4();
-                rotMatX.M11 = 1;
-                rotMatX.M22 = (float)Math.Cos(degree);
-                rotMatX.M23 = -(float)Math.Sin(degree);
-                rotMatX.M32 = (float)Math.Sin(degree);
-                rotMatX.M33 = (float)Math.Cos(degree);
-                rotMatX.M44 = 1;
-
-                Matrix4x4 rotMatY = new Matrix4x4();
-                rotMatY.M11 = (float)Math.Cos(degree);
-                rotMatY.M13 = (float)Math.Sin(degree);
-                rotMatY.M22 = 1;
-                rotMatY.M31 = -(float)Math.Sin(degree);
-                rotMatY.M33 = (float)Math.Cos(degree);
-                rotMatY.M44 = 1;
-
-                Matrix4x4 rotMatZ = new Matrix4x4();
-                rotMatZ.M11 = (float)Math.Cos(degree);
-                rotMatZ.M12 = -(float)Math.Sin(degree);
-                rotMatZ.M21 = (float)Math.Sin(degree);
-                rotMatZ.M22 = -(float)Math.Cos(degree);
-                rotMatZ.M33 = 1;
-                rotMatZ.M44 = 1;
-
-                copy[i] = Vector3.Transform(copy[i], rotMatX);
-                //copy[i] = Vector3.Transform(copy[i], rotMatY);
-                //copy[i] = Vector3.Transform(copy[i], rotMatZ);
+                // Rotate with given matrix
+                copy[i] = Vector3.Transform(copy[i], MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree));
 
                 // Translate all points
                 copy[i] += v1;
@@ -125,7 +110,7 @@ namespace CornellBoxWPF
                 p.Points.Add(p2);
                 p.Points.Add(p3);
             }
-
+            
             canv.Children.Add(p);
 
 

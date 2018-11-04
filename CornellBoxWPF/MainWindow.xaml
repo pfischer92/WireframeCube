@@ -7,7 +7,8 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="800">
     <Grid>
-        <Canvas x:Name="canv" Height="400" Width="400" Grid.Column="0" Margin="10,0,385,372.5"/>
+        <Canvas x:Name="canv" Height="800" Width="800" Grid.Column="0" Margin="10,0,385,372.5"/>
+        <Label x:Name="frame_rate" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test"/>
         <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Window>
