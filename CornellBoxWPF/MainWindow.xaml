@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="500">
     <Grid>
-        <Label x:Name="frame_rate" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test"/>
+        <Label x:Name="frame_rate" Foreground="Black" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test"/>
         <Image x:Name="img" Stretch="None" Height="400" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Window>

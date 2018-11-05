@@ -39,16 +39,16 @@ namespace CornellBoxWPF
         public static List<Triangle> triangles = new List<Triangle>() {
             new Triangle(new Vector3(0,1,2), new Vector3(1,0,0)),
             new Triangle(new Vector3(0,2,3),new Vector3(1,0,0)),
-            new Triangle(new Vector3(7,6,5),new Vector3(1,0,0)),
-            new Triangle(new Vector3(7,5,4),new Vector3(1,0,0)),
-            new Triangle(new Vector3(0,3,7),new Vector3(1,0,0)),
-            new Triangle(new Vector3(0,7,4),new Vector3(1,0,0)),
-            new Triangle(new Vector3(2,1,5),new Vector3(1,0,0)),
-            new Triangle(new Vector3(2,5,6),new Vector3(1,0,0)),
-            new Triangle(new Vector3(3,2,6),new Vector3(1,0,0)),
-            new Triangle(new Vector3(3,6,7),new Vector3(1,0,0)),
-            new Triangle(new Vector3(1,0,4),new Vector3(1,0,0)),
-            new Triangle(new Vector3(1,4,5),new Vector3(1,0,0))
+            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0)),
+            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0)),
+            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1)),
+            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1)),
+            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0)),
+            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0)),
+            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1)),
+            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1)),
+            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1)),
+            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1))
         };
 
 
@@ -120,7 +120,7 @@ namespace CornellBoxWPF
                         for (int y = 0; y < image.PixelHeight; y++)
                         {
                             // Calc u and v
-                            Vector2 AP = new Vector2(x, y);
+                            Vector2 AP = new Vector2(x - (float)A.X, y - (float)A.Y);
                             float a = AB.X;
                             float b = AC.X;
                             float c = AB.Y;
