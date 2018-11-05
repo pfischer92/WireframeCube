@@ -37,7 +37,7 @@ namespace CornellBoxWPF
                                                                    new Vector3(1,1,1),
                                                                    new Vector3(-1,1,1)};
         public static List<Triangle> triangles = new List<Triangle>() {
-            new Triangle(new Vector3(0,1,2), new Vector3(1,0,0)),
+            new Triangle(new Vector3(0,1,2),new Vector3(1,0,0)),
             new Triangle(new Vector3(0,2,3),new Vector3(1,0,0)),
             new Triangle(new Vector3(7,6,5),new Vector3(0,1,0)),
             new Triangle(new Vector3(7,5,4),new Vector3(0,1,0)),
@@ -84,7 +84,7 @@ namespace CornellBoxWPF
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             Vector3 v1 = new Vector3(0, 0, 5);
             Point[] trianglePoints = new Point[points.Count];
-            List<Vector3> copy = new List<Vector3>(points);
+            List<Vector3> points_copy = new List<Vector3>(points);
 
             // Rotate cube by certain degree
             degree += 0.05f;
@@ -92,13 +92,13 @@ namespace CornellBoxWPF
             for (int i = 0; i < points.Count; i++)
             {
                 // Rotate with given matrix
-                copy[i] = Vector3.Transform(copy[i], MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree));
+                points_copy[i] = Vector3.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree));
 
                 // Translate all points
-                copy[i] += v1;
+                points_copy[i] += v1;
 
                 // Calc x' and y'
-                trianglePoints[i] = new Point((int)(image.Width * copy[i].X / copy[i].Z + image.Width / 2), (int)(image.Width * copy[i].Y / copy[i].Z + image.Height / 2));
+                trianglePoints[i] = new Point((int)(image.Width * points_copy[i].X / points_copy[i].Z + image.Width / 2), (int)(image.Width * points_copy[i].Y / points_copy[i].Z + image.Height / 2));
             }
 
             foreach (var triangle in triangles)
@@ -108,13 +108,13 @@ namespace CornellBoxWPF
                 Point B = trianglePoints[(int)triangle._pointIdx.Y];
                 Point C = trianglePoints[(int)triangle._pointIdx.Z];
 
-                // Backface culling here
+                // Start Backface culling
                 Vector3 AB = new Vector3((float)(B.X - A.X), (float)(B.Y - A.Y), 0);
                 Vector3 AC = new Vector3((float)(C.X - A.X), (float)(C.Y - A.Y), 0);
                 Vector3 n = Vector3.Normalize(Vector3.Cross(AB, AC));
                 
-                if (n.Z > 0.0f) // Triangle is in front
-                {
+                if (n.Z > 0.0f) // Triangle is in front -> Render it
+                {   // End Backface culling
                     for (int x = 0; x < image.PixelWidth; x++)
                     {
                         for (int y = 0; y < image.PixelHeight; y++)
