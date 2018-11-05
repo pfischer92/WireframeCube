@@ -5,10 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CornellBoxWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="800">
+        Title="MainWindow" Height="500" Width="500">
     <Grid>
-        <Canvas x:Name="canv" Background="Black" Height="800" Width="800" Grid.Column="0" Margin="10,0,385,372.5"/>
         <Label x:Name="frame_rate" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Top" Content="Test"/>
-        <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Image x:Name="img" Stretch="None" Height="400" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Window>

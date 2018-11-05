@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CornellBoxWPF.Helpers
+namespace WireframeCube.Helpers
 {
     public class GammaCorrection
     {
