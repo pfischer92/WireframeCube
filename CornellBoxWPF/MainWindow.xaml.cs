@@ -25,6 +25,7 @@ namespace CornellBoxWPF
         public static int _k = 40;
 
         public static byte[] colourData { get; set; }
+        public static float[] zBuffer { get; set; }
 
         public static double degree = 0.0;
 
@@ -73,6 +74,11 @@ namespace CornellBoxWPF
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             colourData = new byte[image.PixelHeight * image.PixelWidth * 3];
+            zBuffer = new float[image.PixelHeight * image.PixelWidth];
+            for(int i = 0; i<zBuffer.Length; i++)
+            {
+                zBuffer[i] = float.PositiveInfinity;
+            }
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
@@ -109,7 +115,7 @@ namespace CornellBoxWPF
             for (int i = 0; i < cubePoints.Count; i++)
             {
                 // Rotate with given matrix
-                points_copy[i] = Vector4.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree)*MatrixHelpers.GetYRotationMatrix(degree));
+                points_copy[i] = Vector4.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree));
 
                 // Translate all points
                 points_copy[i] += v1;
@@ -163,16 +169,16 @@ namespace CornellBoxWPF
                                //color = triangle._color;
                                color = GetInterpolatedColor(triangle, u, v);
 
-                               // Specular/Phong
-                               //Vector3 hitpoint = new Vector3(A.X, A.Y, -5);
-                               //Vector3 normal = new Vector3(triangle._normal.X, triangle._normal.Y, triangle._normal.Z);
-                               //Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint));
-                               //float nL = Vector3.Dot(normal, l);
-                               //Vector3 s = l - Vector3.Dot(l, normal) * normal;
-                               //Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint));
-                               //Vector3 r = Vector3.Normalize(l - 2 * s);
-                               //color = GetDiffuseLight(nL, lightColor, color);
-                               //color += GetSpecularLight(nL, hitpoint, lightColor, r, EH);
+                                // Specular/Phong
+                                //Vector3 hitpoint = new Vector3(A.X, A.Y, -5);
+                                //Vector3 normal = new Vector3(triangle._normal.X, triangle._normal.Y, triangle._normal.Z);
+                                //Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint));
+                                //float nL = Vector3.Dot(normal, l);
+                                //Vector3 s = l - Vector3.Dot(l, normal) * normal;
+                                //Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint));
+                                //Vector3 r = Vector3.Normalize(l - 2 * s);
+                                //color = GetDiffuseLight(nL, lightColor, color);
+                                //color += GetSpecularLight(nL, hitpoint, lightColor, r, EH);
 
                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
