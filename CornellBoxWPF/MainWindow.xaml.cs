@@ -1,4 +1,5 @@
 ﻿using CornellBoxWPF.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -18,8 +19,10 @@ namespace CornellBoxWPF
         private double frameCounter;
         public static WriteableBitmap image { get; set; }
         public Vector3 color = new Vector3();
-        public Vector3 light = new Vector3(0, 0, 0);
-        public Vector3 camera = new Vector3(0, 0, 0);
+        public Vector3 lightPos = new Vector3(0, 0, 0);
+        public Vector3 lightColor = new Vector3(1, 1, 1);
+        public static Vector3 _eye = new Vector3(0, 0, 0);
+        public static int _k = 40;
 
         public static byte[] colourData { get; set; }
 
@@ -27,35 +30,44 @@ namespace CornellBoxWPF
 
         public static int bytesPerPixel = 3;
                                                                       // top
-        public static List<Vector3> cubePoints = new List<Vector3>() {new Vector3(-1, -1, -1),    // A, 0
-                                                                      new Vector3(1,-1,-1),       // B, 1
-                                                                      new Vector3(1,1,-1),        // C, 2
-                                                                      new Vector3(-1,1,-1),       // D, 3
+        public static List<Vector4> cubePoints = new List<Vector4>() {new Vector4(-1, -1, -1, 0),    // A, 0
+                                                                      new Vector4(1,-1,-1, 0),       // B, 1
+                                                                      new Vector4(1,1,-1, 0),        // C, 2
+                                                                      new Vector4(-1,1,-1, 0),       // D, 3
                                                                      // bottom
-                                                                     new Vector3(-1,-1,1),        // E, 4
-                                                                     new Vector3(1,-1,1),         // F, 5
-                                                                     new Vector3(1,1,1),          // G, 6
-                                                                     new Vector3(-1,1,1)};        // H, 7
+                                                                     new Vector4(-1,-1,1,0),        // E, 4
+                                                                     new Vector4(1,-1,1,0),         // F, 5
+                                                                     new Vector4(1,1,1,0),          // G, 6
+                                                                     new Vector4(-1,1,1,0)};        // H, 7
 
-
-
-        public static List<Triangle> triangles = new List<Triangle>() {
-            new Triangle(new Vector3(0,1,2),new Vector3(1,0,0), new Vector4(0,1,0,0), new Vector4(0,0,1,0), new Vector4(1,0,0,0)), 
-            new Triangle(new Vector3(0,2,3),new Vector3(1,0,0), new Vector4(0,1,0,0), new Vector4(1,0,0,0), new Vector4(0,0,1,0)),
-            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,0), new Vector4(1,0,0,0), new Vector4(0,0,1,0)),
-            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0) ,new Vector4(0,1,0,0), new Vector4(1,0,0,0), new Vector4(0,0,1,0)), 
-            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,0), new Vector4(0,0,1,0), new Vector4(1,0,0,0)), 
-            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,0), new Vector4(0,0,1,0), new Vector4(1,0,0,0)),
-            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,0), new Vector4(0,0,1,0), new Vector4(0,0,1,0)),
-            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,0), new Vector4(0,0,1,0), new Vector4(0,1,0,0)),
-            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,0), new Vector4(1,0,0,0), new Vector4(0,1,0,0)),
-            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1) ,new Vector4(0,0,1,0), new Vector4(0,1,0,0), new Vector4(1,0,0,0)),
-            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,0), new Vector4(0,1,0,0), new Vector4(1,0,0,0)),
-            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,0), new Vector4(1,0,0,0), new Vector4(0,1,0,0))
+        public static Vector4[] normals = {
+            -Vector4.UnitY,     // up
+            Vector4.UnitY,      // down
+            -Vector4.UnitX,     // left
+            Vector4.UnitX,      // right
+            -Vector4.UnitZ,     // front
+            Vector4.UnitZ       // back
         };
 
-        public static Vector3 v1 = new Vector3(0, 0, 5);
-        Point[] trianglePoints = new Point[cubePoints.Count];
+        public static List<Triangle> triangles = new List<Triangle>() {
+            new Triangle(new Vector3(0,1,2),new Vector3(1,0,0), new Vector4(0,1,0,-1), new Vector4(0,0,1,-1), new Vector4(1,0,0,-1), normals[0]),
+            new Triangle(new Vector3(0,2,3),new Vector3(1,0,0), new Vector4(0,1,0,-1), new Vector4(1,0,0,-1), new Vector4(0,0,1,-1), normals[0]),
+            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,1), new Vector4(1,0,0,1), new Vector4(0,0,1,1), normals[1]),
+            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0) ,new Vector4(0,1,0,1), new Vector4(0,0,1,1), new Vector4(1,0,1,1), normals[1]),
+            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1), normals[2]),
+            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1), new Vector4(0,0,1,1), normals[2]),
+            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,-1), new Vector4(0,0,1,1), normals[3]),
+            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,1), new Vector4(0,1,0,1), normals[3]),
+            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,-1), new Vector4(0,1,0,1), normals[4]),
+            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1) ,new Vector4(0,0,1,-1), new Vector4(0,1,0,1), new Vector4(1,0,0,1), normals[4]),
+            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1), normals[5]),
+            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1), new Vector4(0,1,0,1), normals[5])
+        };
+
+         
+
+        public static Vector4 v1 = new Vector4(0, 0, 5, 0);
+        Vector2[] trianglePoints = new Vector2[cubePoints.Count];
 
         public MainWindow()
         {
@@ -89,7 +101,7 @@ namespace CornellBoxWPF
 
             // Set and clean up
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
-            List<Vector3> points_copy = new List<Vector3>(cubePoints);
+            List<Vector4> points_copy = new List<Vector4>(cubePoints);
 
             // Rotate cube by certain degree
             degree += 0.05f;
@@ -97,25 +109,25 @@ namespace CornellBoxWPF
             for (int i = 0; i < cubePoints.Count; i++)
             {
                 // Rotate with given matrix
-                points_copy[i] = Vector3.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree)*MatrixHelpers.GetYRotationMatrix(degree));
+                points_copy[i] = Vector4.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree)*MatrixHelpers.GetYRotationMatrix(degree));
 
                 // Translate all points
                 points_copy[i] += v1;
 
                 // Calc x' and y'
-                trianglePoints[i] = new Point((int)(image.Width * points_copy[i].X / points_copy[i].Z + image.Width / 2), (int)(image.Width * points_copy[i].Y / points_copy[i].Z + image.Height / 2));
+                trianglePoints[i] = new Vector2((int)(image.Width * points_copy[i].X / points_copy[i].Z + image.Width / 2), (int)(image.Width * points_copy[i].Y / points_copy[i].Z + image.Height / 2));
             }
 
             foreach (var triangle in triangles)
             {
                 // 2D single triangle points
-                Point A = trianglePoints[(int)triangle._pointIdx.X];
-                Point B = trianglePoints[(int)triangle._pointIdx.Y];
-                Point C = trianglePoints[(int)triangle._pointIdx.Z];
+                Vector2 A = trianglePoints[(int)triangle._pointIdx.X];
+                Vector2 B = trianglePoints[(int)triangle._pointIdx.Y];
+                Vector2 C = trianglePoints[(int)triangle._pointIdx.Z];
                 
                 // Start Backface culling
-                Vector3 AB = new Vector3((float)(B.X - A.X), (float)(B.Y - A.Y), 0);
-                Vector3 AC = new Vector3((float)(C.X - A.X), (float)(C.Y - A.Y), 0);
+                Vector3 AB = new Vector3(B.X - A.X, B.Y - A.Y, 0);
+                Vector3 AC = new Vector3(C.X - A.X, C.Y - A.Y, 0);
                 Vector3 n = Vector3.Normalize(Vector3.Cross(AB, AC));
 
                 // Optimization(from inner to outer loop) -> constants for u,v calc
@@ -139,7 +151,7 @@ namespace CornellBoxWPF
                         for (int y = min_y; y < max_y; y++) // iterate only from min_x to max_x in bounding box
                         {
                            // Calc u and v
-                           Vector2 AP = new Vector2(x - (float)A.X, y - (float)A.Y);
+                           Vector2 AP = new Vector2(x - A.X, y - A.Y);
                            float upper = AP.X * d + AP.Y * (-b);
                            float lower = AP.X * (-c) + AP.Y * a;
                            Vector2 vec = new Vector2(upper * 1 / det, lower * 1 / det);
@@ -150,6 +162,18 @@ namespace CornellBoxWPF
                            {
                                //color = triangle._color;
                                color = GetInterpolatedColor(triangle, u, v);
+
+                               // Specular/Phong
+                               //Vector3 hitpoint = new Vector3(A.X, A.Y, -5);
+                               //Vector3 normal = new Vector3(triangle._normal.X, triangle._normal.Y, triangle._normal.Z);
+                               //Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint));
+                               //float nL = Vector3.Dot(normal, l);
+                               //Vector3 s = l - Vector3.Dot(l, normal) * normal;
+                               //Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint));
+                               //Vector3 r = Vector3.Normalize(l - 2 * s);
+                               //color = GetDiffuseLight(nL, lightColor, color);
+                               //color += GetSpecularLight(nL, hitpoint, lightColor, r, EH);
+
                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
@@ -175,8 +199,38 @@ namespace CornellBoxWPF
             color = colorA + u * (colorB - colorA) + v * (colorC - colorA);
 
             return color;
+
+            // With homogenous coordinates
+            //Vector4 color = Vector4.Zero;
+
+            //color = t._colorA / t._colorA.W + u * (t._colorB / t._colorB.W - t._colorA / t._colorA.W) + v * (t._colorC / t._colorC.W - t._colorA / t._colorA.W);
+            //color = color / color.W;
+
+            //return new Vector3(color.X, color.Y, color.Z);
         }
 
+        public static Vector3 GetDiffuseLight(float nL, Vector3 lightColor, Vector3 sphereColor)
+        {
+            Vector3 diffLight = Vector3.Zero;
+            if (nL >= 0)
+            {
+                return diffLight = lightColor * sphereColor * nL;
+            }
+
+            return diffLight;
+        }
+
+        public static Vector3 GetSpecularLight(float nL, Vector3 hitPoint, Vector3 lightColor, Vector3 r, Vector3 EH)
+        {
+            Vector3 specularLight = Vector3.Zero;
+            if (nL >= 0)
+            {
+                float phongFactor = Vector3.Dot(r, Vector3.Normalize(hitPoint - _eye));
+                specularLight = lightColor * (float)Math.Pow(phongFactor, _k);
+            }
+
+            return specularLight;
+        }
     }
 }
 

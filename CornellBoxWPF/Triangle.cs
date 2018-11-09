@@ -14,13 +14,15 @@ namespace CornellBoxWPF
         public Vector4 _colorA { get; set; }
         public Vector4 _colorB { get; set; }
         public Vector4 _colorC { get; set; }
-        public Triangle(Vector3 pointIdx, Vector3 fixColor, Vector4 colorA, Vector4 colorB, Vector4 colorC)
+        public Vector4 _normal { get; set; }
+        public Triangle(Vector3 pointIdx, Vector3 fixColor, Vector4 colorA, Vector4 colorB, Vector4 colorC, Vector4 normal)
         {
             _pointIdx = pointIdx;
             _color = fixColor;
             _colorA = colorA;
             _colorB = colorB;
             _colorC = colorC;
+            _normal = normal;
         }
 
     }
