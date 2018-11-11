@@ -30,42 +30,41 @@ namespace CornellBoxWPF
         public static double degree = 0.0;
 
         public static int bytesPerPixel = 3;
-                                                                      // top
+                                                                      // Top
         public static List<Vector4> cubePoints = new List<Vector4>() {new Vector4(-1, -1, -1, 0),    // A, 0
                                                                       new Vector4(1,-1,-1, 0),       // B, 1
                                                                       new Vector4(1,1,-1, 0),        // C, 2
                                                                       new Vector4(-1,1,-1, 0),       // D, 3
-                                                                     // bottom
-                                                                     new Vector4(-1,-1,1,0),        // E, 4
-                                                                     new Vector4(1,-1,1,0),         // F, 5
-                                                                     new Vector4(1,1,1,0),          // G, 6
-                                                                     new Vector4(-1,1,1,0)};        // H, 7
+                                                                     // Bottom
+                                                                     new Vector4(-1,-1,1,0),         // E, 4
+                                                                     new Vector4(1,-1,1,0),          // F, 5
+                                                                     new Vector4(1,1,1,0),           // G, 6
+                                                                     new Vector4(-1,1,1,0)};         // H, 7
 
         public static Vector4[] normals = {
-            -Vector4.UnitY,     // up
-            Vector4.UnitY,      // down
-            -Vector4.UnitX,     // left
-            Vector4.UnitX,      // right
-            -Vector4.UnitZ,     // front
-            Vector4.UnitZ       // back
+            -Vector4.UnitY,     // Up
+            Vector4.UnitY,      // Down
+            -Vector4.UnitX,     // Left
+            Vector4.UnitX,      // Right
+            -Vector4.UnitZ,     // Front
+            Vector4.UnitZ       // Back
         };
 
         public static List<Triangle> triangles = new List<Triangle>() {
+                         // Points (A,B,C)  // Fix color        // A color              // B color            // C color             // Normal       
             new Triangle(new Vector3(0,1,2),new Vector3(1,0,0), new Vector4(0,1,0,-1), new Vector4(0,0,1,-1), new Vector4(1,0,0,-1), normals[0]),
             new Triangle(new Vector3(0,2,3),new Vector3(1,0,0), new Vector4(0,1,0,-1), new Vector4(1,0,0,-1), new Vector4(0,0,1,-1), normals[0]),
-            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,1), new Vector4(1,0,0,1), new Vector4(0,0,1,1), normals[1]),
-            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0) ,new Vector4(0,1,0,1), new Vector4(0,0,1,1), new Vector4(1,0,1,1), normals[1]),
-            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1), normals[2]),
-            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1), new Vector4(0,0,1,1), normals[2]),
-            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,-1), new Vector4(0,0,1,1), normals[3]),
-            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,1), new Vector4(0,1,0,1), normals[3]),
-            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,-1), new Vector4(0,1,0,1), normals[4]),
-            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1) ,new Vector4(0,0,1,-1), new Vector4(0,1,0,1), new Vector4(1,0,0,1), normals[4]),
-            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1), normals[5]),
-            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1), new Vector4(0,1,0,1), normals[5])
+            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,1),  new Vector4(1,0,0,1),  new Vector4(0,0,1,1),  normals[1]),
+            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0), new Vector4(0,1,0,1),  new Vector4(0,0,1,1),  new Vector4(1,0,1,1),  normals[1]),
+            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1),  normals[2]),
+            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1),  new Vector4(0,0,1,1),  normals[2]),
+            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,-1), new Vector4(0,0,1,1),  normals[3]),
+            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,-1), new Vector4(0,0,1,1),  new Vector4(0,1,0,1),  normals[3]),
+            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,-1), new Vector4(0,1,0,1),  normals[4]),
+            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1), new Vector4(0,0,1,-1), new Vector4(0,1,0,1),  new Vector4(1,0,0,1),  normals[4]),
+            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(0,1,0,-1), new Vector4(1,0,0,1),  normals[5]),
+            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,-1), new Vector4(1,0,0,1),  new Vector4(0,1,0,1),  normals[5])
         };
-
-         
 
         public static Vector4 v1 = new Vector4(0, 0, 5, 0);
         Vector2[] trianglePoints = new Vector2[cubePoints.Count];
