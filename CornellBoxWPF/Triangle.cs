@@ -15,7 +15,7 @@ namespace CornellBoxWPF
         public Vector4 _colorB { get; set; }
         public Vector4 _colorC { get; set; }
         public Vector4 _normal { get; set; }
-        
+
         public float _sA { get; set; }
         public float _tA { get; set; }
         public float _sB { get; set; }
