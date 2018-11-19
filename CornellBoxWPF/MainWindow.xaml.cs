@@ -25,8 +25,8 @@ namespace CornellBoxWPF
         private double frameCounter;
         public static WriteableBitmap image { get; set; }
         public Vector3 color = new Vector3();
-        public Vector3 lightPos = new Vector3(0, 0, 0);
-        public Vector3 lightColor = new Vector3(0.8f, 0.8f, 0.8f);
+        public static Vector3 lightPos = new Vector3(0, 0, 0);
+        public static Vector3 lightColor = new Vector3(0.8f, 0.8f, 0.8f);
         public static Vector3 _eye = new Vector3(0, 0, 0);
         public static int _k = 40;
 
@@ -42,10 +42,10 @@ namespace CornellBoxWPF
                                                                       new Vector3(1,1,-1),        // C, 2
                                                                       new Vector3(-1,1,-1),       // D, 3
                                                                      // Bottom
-                                                                     new Vector3(-1,-1,1),         // E, 4
-                                                                     new Vector3(1,-1,1),          // F, 5
-                                                                     new Vector3(1,1,1),           // G, 6
-                                                                     new Vector3(-1,1,1)};         // H, 7
+                                                                     new Vector3(-1,-1,1),        // E, 4
+                                                                     new Vector3(1,-1,1),         // F, 5
+                                                                     new Vector3(1,1,1),          // G, 6
+                                                                     new Vector3(-1,1,1)};        // H, 7
 
         public static Vector4[] normals = {
             -Vector4.UnitY,     // Up
@@ -74,12 +74,13 @@ namespace CornellBoxWPF
 
         public static Vector3 v1 = new Vector3(0, 0, 5);
         Vector2[] trianglePoints = new Vector2[cubePoints.Count];
+        
 
         public MainWindow()
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
-            zBuffer = new float[image.PixelHeight * image.PixelWidth];
+            zBuffer = new float[image.PixelHeight * image.PixelWidth * bytesPerPixel];
            
             InitializeComponent();
             Loaded += MainWindow_Loaded;
@@ -106,6 +107,7 @@ namespace CornellBoxWPF
         void CompositionTarget_Rendering(object sender, object e)
         {
             CalcFrameRate();
+            Matrix4x4 rotMat = MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree);
 
             // Set and clean up
             Array.Clear(colourData, 0, colourData.Length);
@@ -123,7 +125,7 @@ namespace CornellBoxWPF
             for (int i = 0; i < cubePoints.Count; i++)
             {
                 // Rotate with given matrix
-                points_copy[i] = Vector3.Transform(points_copy[i], MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree));
+                points_copy[i] = Vector3.Transform(points_copy[i], rotMat);
 
                 // Translate all points
                 points_copy[i] += v1;
@@ -183,23 +185,16 @@ namespace CornellBoxWPF
                                 Vector3 interpolatedPoint = _a + u * ab + v * ac;   // 3D Hitpoint
                                 
                                 //color = triangle._color;
-                                //color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
-                                color = bitmapTexturing.GetBitmapColor(u, v, interpolatedPoint.Z, triangle);
+                                color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
+                                //color = bitmapTexturing.GetBitmapColor(u, v, interpolatedPoint.Z, triangle);
 
                                 // Specular/Phong
-                                //Vector3 normal = new Vector3(triangle._normal.X, triangle._normal.Y, triangle._normal.Z);
-                                //Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, interpolatedPoint));
-                                //float nL = Vector3.Dot(normal, l);
-                                //Vector3 s = l - Vector3.Dot(l, normal) * normal;
-                                //Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, interpolatedPoint));
-                                //Vector3 r = Vector3.Normalize(l - 2 * s);
-                                //color = GetDiffuseLight(nL, lightColor, color);
-                                //color += GetSpecularLight(nL, interpolatedPoint, lightColor, r, EH);
-                                
+                                //color = GetDiffuseLight(interpolatedPoint, color, rotMat, triangle);
+                                color += GetSpecularLight(interpolatedPoint, rotMat, triangle);
 
                                 if (!float.IsInfinity(interpolatedPoint.Z) && !float.IsNaN(interpolatedPoint.Z))
                                 {
-                                    if (interpolatedPoint.Z < zBuffer[x + y * image.PixelHeight])
+                                    if (interpolatedPoint.Z < zBuffer[x + y * image.PixelHeight * bytesPerPixel])
                                     {
                                         if (printZbuffer)
                                         {
@@ -236,8 +231,12 @@ namespace CornellBoxWPF
             return new Vector3(color.X, color.Y, color.Z);
         }
 
-        public static Vector3 GetDiffuseLight(float nL, Vector3 lightColor, Vector3 sphereColor)
+        public static Vector3 GetDiffuseLight(Vector3 interpolatedPoint, Vector3 sphereColor, Matrix4x4 rotMatrix, Triangle triangle)
         {
+            Vector3 norm = GetInterpolatedNormal(rotMatrix, triangle);
+            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, interpolatedPoint));
+            float nL = Vector3.Dot(norm, l);
+
             Vector3 diffLight = Vector3.Zero;
             if (nL >= 0)
             {
@@ -247,16 +246,30 @@ namespace CornellBoxWPF
             return diffLight;
         }
 
-        public static Vector3 GetSpecularLight(float nL, Vector3 hitPoint, Vector3 lightColor, Vector3 r, Vector3 EH)
+        public static Vector3 GetSpecularLight(Vector3 interpolatedPoint, Matrix4x4 rotMatrix, Triangle triangle)
         {
+            Vector3 norm = GetInterpolatedNormal(rotMatrix, triangle);
+            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, interpolatedPoint));
+            Vector3 s = l - Vector3.Dot(l, norm) * norm;
+            Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, interpolatedPoint));
+            Vector3 r = Vector3.Normalize(l - 2 * s);
+            float nL = Vector3.Dot(norm, l);
+
             Vector3 specularLight = Vector3.Zero;
             if (nL >= 0)
             {
-                float phongFactor = Vector3.Dot(r, Vector3.Normalize(hitPoint - _eye));
+                float phongFactor = Vector3.Dot(r, Vector3.Normalize(interpolatedPoint - _eye));
                 specularLight = lightColor * (float)Math.Pow(phongFactor, _k);
             }
 
             return specularLight;
+        }
+        public static Vector3 GetInterpolatedNormal(Matrix4x4 rotMatrix, Triangle triangle)
+        {
+            Matrix4x4 invertTransMatrix = Matrix4x4.Transpose(rotMatrix);
+            Matrix4x4.Invert(invertTransMatrix, out invertTransMatrix);
+            Vector4 normal = Vector4.Transform(triangle._normal, invertTransMatrix);
+            return Vector3.Normalize(new Vector3(normal.X, normal.Y, normal.Z));
         }
     }
 }
