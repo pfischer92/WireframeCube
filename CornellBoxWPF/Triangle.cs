@@ -14,7 +14,6 @@ namespace CornellBoxWPF
         public Vector4 _colorA { get; set; }
         public Vector4 _colorB { get; set; }
         public Vector4 _colorC { get; set; }
-        public Vector4 _normal { get; set; }
 
         public float _sA { get; set; }
         public float _tA { get; set; }
@@ -23,7 +22,7 @@ namespace CornellBoxWPF
         public float _sC { get; set; }
         public float _tC { get; set; }
 
-        public Triangle(Vector3 pointIdx, Vector3 fixColor, Vector4 colorA, float sA, float tA, Vector4 colorB, float sB, float tB, Vector4 colorC, float sC, float tC, Vector4 normal)
+        public Triangle(Vector3 pointIdx, Vector3 fixColor, Vector4 colorA, float sA, float tA, Vector4 colorB, float sB, float tB, Vector4 colorC, float sC, float tC)
         {
             _pointIdx = pointIdx;
             _color = fixColor;
@@ -36,7 +35,6 @@ namespace CornellBoxWPF
             _colorC = colorC;
             _sC = sC;
             _tC = tC;
-            _normal = normal;
         }
     }
 }

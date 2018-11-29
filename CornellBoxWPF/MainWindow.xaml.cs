@@ -25,7 +25,7 @@ namespace CornellBoxWPF
         private double frameCounter;
         public static WriteableBitmap image { get; set; }
         public Vector3 color = new Vector3();
-        public static Vector3 lightPos = new Vector3(-10, -5, -5);
+        public static Vector3 lightPos = new Vector3(0, 0, 0);
         public static Vector3 lightColor = new Vector3(0.8f, 0.8f, 0.8f);
         public static Vector3 _eye = new Vector3(0, 0, 0);
         public static int _k = 40;
@@ -36,8 +36,8 @@ namespace CornellBoxWPF
         public static double degree = 0.0;
 
         public static int bytesPerPixel = 3;
-                                                                      // Top
-        public static List<Vector3> cubePoints = new List<Vector3>() {new Vector3(-1, -1, -1),    // A, 0
+        // Top
+        public static Vector3[] cubePoints = new Vector3[] {new Vector3(-1, -1, -1 ),   // A, 0
                                                                       new Vector3(1,-1,-1),       // B, 1
                                                                       new Vector3(1,1,-1),        // C, 2
                                                                       new Vector3(-1,1,-1),       // D, 3
@@ -47,40 +47,55 @@ namespace CornellBoxWPF
                                                                      new Vector3(1,1,1),          // G, 6
                                                                      new Vector3(-1,1,1)};        // H, 7
 
-        public static Vector4[] normals = {
-            -Vector4.UnitY,     // Up
-            Vector4.UnitY,      // Down
-            -Vector4.UnitX,     // Left
-            Vector4.UnitX,      // Right
-            -Vector4.UnitZ,     // Front
-            Vector4.UnitZ       // Back
+        public static Vector3[] normals = {
+            Vector3.UnitZ,          // A, 0
+            -Vector3.UnitZ,         // B, 1
+            Vector3.UnitX,          // C, 2
+            -Vector3.UnitY,         // D, 3
+            Vector3.UnitZ,          // E, 4
+            -Vector3.UnitX,         // F, 5
+            Vector3.UnitX,          // G, 6
+            Vector3.UnitY           // H, 7
+
+        };
+
+        public static Vector3[] rotatedNormals = {
+            Vector3.UnitZ,          // A, 0
+            -Vector3.UnitZ,         // B, 1
+            Vector3.UnitX,          // C, 2
+            -Vector3.UnitY,         // D, 3
+            Vector3.UnitZ,          // E, 4
+            -Vector3.UnitX,         // F, 5
+            Vector3.UnitX,          // G, 6
+            Vector3.UnitY           // H, 7
+
         };
 
         public static List<Triangle> triangles = new List<Triangle>() {
-                         // Points  (A,B,C) // Fix color        // A color            //sA  //tA  // B color            //sB  //tB  // C color            //sC  //tC   // Normal    
-            new Triangle(new Vector3(0,1,2),new Vector3(1,0,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f, normals[0]),
-            new Triangle(new Vector3(0,2,3),new Vector3(1,0,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f, normals[0]),
-            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f, normals[1]),
-            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,1,1), 0.0f, 1.0f, normals[1]),
-            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f, normals[2]),
-            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f, normals[2]),
-            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f, normals[3]),
-            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f, normals[3]),
-            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f, normals[4]),
-            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(0,1,0,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f, normals[4]),
-            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(0,1,0,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f, normals[5]),
-            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f, normals[5])
+                         // Points  (A,B,C) // Fix color        // A color            //sA  //tA  // B color            //sB  //tB  // C color            //sC  //tC      
+            new Triangle(new Vector3(0,1,2),new Vector3(1,0,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(0,2,3),new Vector3(1,0,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(7,6,5),new Vector3(0,1,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(7,5,4),new Vector3(0,1,0), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,1,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(0,3,7),new Vector3(0,0,1), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(0,7,4),new Vector3(0,0,1), new Vector4(0,1,0,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(2,1,5),new Vector3(1,1,0), new Vector4(1,0,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(0,0,1,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(2,5,6),new Vector3(1,1,0), new Vector4(1,0,0,1), 0.0f, 0.0f, new Vector4(0,0,1,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(3,2,6),new Vector3(1,0,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(3,6,7),new Vector3(1,0,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(0,1,0,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(1,0,4),new Vector3(0,1,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(0,1,0,1), 1.0f, 1.0f, new Vector4(1,0,0,1), 0.0f, 1.0f),
+            new Triangle(new Vector3(1,4,5),new Vector3(0,1,1), new Vector4(0,0,1,1), 0.0f, 0.0f, new Vector4(1,0,0,1), 1.0f, 1.0f, new Vector4(0,1,0,1), 0.0f, 1.0f)
         };
 
         public static Vector3 v1 = new Vector3(0, 0, 5);
-        Vector2[] trianglePoints = new Vector2[cubePoints.Count];
+        Vector2[] trianglePoints = new Vector2[cubePoints.Length];
 
         public MainWindow()
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             zBuffer = new float[image.PixelHeight * image.PixelWidth];
-           
+
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
@@ -93,8 +108,8 @@ namespace CornellBoxWPF
 
         private void CalcFrameRate()
         {
-            if (frameCounter++ == 0){ stopwatch.Start(); }
-            
+            if (frameCounter++ == 0) { stopwatch.Start(); }
+
             var frameRate = (long)(frameCounter / stopwatch.Elapsed.TotalSeconds);
             if (frameRate > 0)
             {
@@ -106,8 +121,14 @@ namespace CornellBoxWPF
         void CompositionTarget_Rendering(object sender, object e)
         {
             CalcFrameRate();
-            Matrix4x4 rotMat = MatrixHelpers.GetXRotationMatrix(degree) * 
+            Matrix4x4 rotMat = MatrixHelpers.GetXRotationMatrix(degree) *
                 MatrixHelpers.GetYRotationMatrix(degree);
+
+            Matrix4x4 invertedMatrix = new Matrix4x4();
+            Matrix4x4.Invert(rotMat, out invertedMatrix);
+            Matrix4x4 invertTransMatrix = Matrix4x4.Transpose(invertedMatrix);
+
+            //Vector4 normal = Vector4.Transform(triangle._normal, invertTransMatrix);
 
             // Set and clean up
             Array.Clear(colourData, 0, colourData.Length);
@@ -117,15 +138,16 @@ namespace CornellBoxWPF
                 zBuffer[i] = float.PositiveInfinity;
             }
 
-            List<Vector3> points_copy = new List<Vector3>(cubePoints);
+            Vector3[] points_copy = (Vector3[])cubePoints.Clone(); //Vector(cubePoints);
 
             // Rotate cube by certain degree
             degree += 0.05f;
 
-            for (int i = 0; i < cubePoints.Count; i++)
+            for (int i = 0; i < cubePoints.Length; i++)
             {
                 // Rotate with given matrix
                 points_copy[i] = Vector3.Transform(points_copy[i], rotMat);
+                rotatedNormals[i] = Vector3.Transform(normals[i], invertTransMatrix);
 
                 // Translate all points
                 points_copy[i] += v1;
@@ -140,7 +162,7 @@ namespace CornellBoxWPF
                 Vector2 A = trianglePoints[(int)triangle._pointIdx.X];
                 Vector2 B = trianglePoints[(int)triangle._pointIdx.Y];
                 Vector2 C = trianglePoints[(int)triangle._pointIdx.Z];
-                
+
                 // Start Backface culling
                 Vector3 AB = new Vector3(B.X - A.X, B.Y - A.Y, 0);
                 Vector3 AC = new Vector3(C.X - A.X, C.Y - A.Y, 0);
@@ -166,31 +188,31 @@ namespace CornellBoxWPF
                     {
                         for (int y = min_y; y < max_y; y++) // iterate only from min_x to max_x in bounding box
                         {
-                           // Calc u and v
-                           Vector2 AP = new Vector2(x - A.X, y - A.Y);
-                           float upper = AP.X * d + AP.Y * (-b);
-                           float lower = AP.X * (-c) + AP.Y * a;
-                           Vector2 vec = new Vector2(upper * 1 / det, lower * 1 / det);
-                           float u = vec.X;
-                           float v = vec.Y;
+                            // Calc u and v
+                            Vector2 AP = new Vector2(x - A.X, y - A.Y);
+                            float upper = AP.X * d + AP.Y * (-b);
+                            float lower = AP.X * (-c) + AP.Y * a;
+                            Vector2 vec = new Vector2(upper * 1 / det, lower * 1 / det);
+                            float u = vec.X;
+                            float v = vec.Y;
 
-                           if (u >= 0 && v >= 0 && u + v < 1)
-                           {
+                            if (u >= 0 && v >= 0 && u + v < 1)
+                            {
                                 // Calc interpolated point
                                 Vector3 _a = points_copy[(int)triangle._pointIdx.X];
                                 Vector3 _b = points_copy[(int)triangle._pointIdx.Y];
                                 Vector3 _c = points_copy[(int)triangle._pointIdx.Z];
-                                var ab = _b - _a;
-                                var ac = _c - _a;
-                                Vector3 interpolatedPoint = _a + u * ab + v * ac;   // 3D Hitpoint
-                                
+
+                                Vector3 interpolatedPoint = GetInterpolatedWorldCoordiantes(_a, _b, _c, u, v);
+                                Vector3 interpolatedNormal = GetInterpolatedNormal(triangle, u, v);
+
                                 color = triangle._color;
                                 //color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
                                 //color = bitmapTexturing.GetBitmapColor(u, v, interpolatedPoint.Z, triangle);
 
                                 // Specular/Phong
-                                color = GetDiffuseLight(interpolatedPoint, color, rotMat, triangle);
-                                //color += GetSpecularLight(interpolatedPoint, rotMat, triangle);
+                                //color = GetDiffuseLight(interpolatedPoint, interpolatedNormal, color);
+                                color += GetSpecularLight(interpolatedPoint, interpolatedNormal);
 
                                 if (!float.IsInfinity(interpolatedPoint.Z))
                                 {
@@ -231,11 +253,20 @@ namespace CornellBoxWPF
             return new Vector3(color.X, color.Y, color.Z);
         }
 
-        public static Vector3 GetDiffuseLight(Vector3 interpolatedPoint, Vector3 sphereColor, Matrix4x4 rotMatrix, Triangle triangle)
+        public static Vector3 GetInterpolatedWorldCoordiantes(Vector3 a, Vector3 b, Vector3 c, float u, float v)
         {
-            Vector3 norm = GetInterpolatedNormal(rotMatrix, triangle);
+            Vector3 world = Vector3.Zero;
+
+            world = a + u * (b - a) + v * (c - a);
+            world = world / world.Z;
+
+            return world;
+        }
+
+        public static Vector3 GetDiffuseLight(Vector3 interpolatedPoint, Vector3 interpolatedNormal, Vector3 sphereColor)
+        {
             Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, interpolatedPoint));
-            float nL = Vector3.Dot(norm, l);
+            float nL = Vector3.Dot(interpolatedNormal, l);
 
             Vector3 diffLight = Vector3.Zero;
             if (nL >= 0)
@@ -246,14 +277,13 @@ namespace CornellBoxWPF
             return diffLight;
         }
 
-        public static Vector3 GetSpecularLight(Vector3 interpolatedPoint, Matrix4x4 rotMatrix, Triangle triangle)
+        public static Vector3 GetSpecularLight(Vector3 interpolatedPoint, Vector3 interpolatedNormal)
         {
-            Vector3 norm = GetInterpolatedNormal(rotMatrix, triangle);
             Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, interpolatedPoint));
-            Vector3 s = l - Vector3.Dot(l, norm) * norm;
+            Vector3 s = l - Vector3.Dot(l, interpolatedNormal) * interpolatedNormal;
             Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, interpolatedPoint));
             Vector3 r = Vector3.Normalize(l - 2 * s);
-            float nL = Vector3.Dot(norm, l);
+            float nL = Vector3.Dot(interpolatedNormal, l);
 
             Vector3 specularLight = Vector3.Zero;
             if (nL >= 0)
@@ -264,17 +294,30 @@ namespace CornellBoxWPF
 
             return specularLight;
         }
-        public static Vector3 GetInterpolatedNormal(Matrix4x4 rotMatrix, Triangle triangle)
+        public static Vector3 GetInterpolatedNormal(Triangle triangle, float u, float v)
         {
-            Matrix4x4 invertedMatrix = new Matrix4x4();
-            Matrix4x4.Invert(rotMatrix, out invertedMatrix);
-            Matrix4x4 invertTransMatrix =  Matrix4x4.Transpose(invertedMatrix);
-            
-            Vector4 normal = Vector4.Transform(triangle._normal, invertTransMatrix);
-            normal.W = 0;
-            normal = Vector4.Normalize(normal);
-            
-            return new Vector3(normal.X, normal.Y, normal.Z);
+            //Matrix4x4 invertedMatrix = new Matrix4x4();
+            //Matrix4x4.Invert(rotMatrix, out invertedMatrix);
+            //Matrix4x4 invertTransMatrix =  Matrix4x4.Transpose(invertedMatrix);
+
+            //Vector4 normal = Vector4.Transform(triangle._normal, invertTransMatrix);
+            //normal.W = 0;
+            //normal = Vector4.Normalize(normal);
+
+            //return new Vector3(normal.X, normal.Y, normal.Z);
+
+
+            Vector3 interpolatedNormal = Vector3.Zero;
+
+            Vector3 vertexIdx = triangle._pointIdx;
+            Vector3 a_normal = rotatedNormals[(int)vertexIdx.X];
+            Vector3 b_normal = rotatedNormals[(int)vertexIdx.Y];
+            Vector3 c_normal = rotatedNormals[(int)vertexIdx.Z];
+
+            interpolatedNormal = a_normal + u * (b_normal - a_normal) + v * (c_normal - a_normal);
+
+            return Vector3.Normalize(interpolatedNormal);
+
         }
     }
 }
