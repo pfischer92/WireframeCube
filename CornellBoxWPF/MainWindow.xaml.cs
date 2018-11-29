@@ -25,7 +25,7 @@ namespace CornellBoxWPF
         private double frameCounter;
         public static WriteableBitmap image { get; set; }
         public Vector3 color = new Vector3();
-        public static Vector3 lightPos = new Vector3(0, 0, 0);
+        public static Vector3 lightPos = new Vector3(-10, -5, -5);
         public static Vector3 lightColor = new Vector3(0.8f, 0.8f, 0.8f);
         public static Vector3 _eye = new Vector3(0, 0, 0);
         public static int _k = 40;
@@ -74,13 +74,12 @@ namespace CornellBoxWPF
 
         public static Vector3 v1 = new Vector3(0, 0, 5);
         Vector2[] trianglePoints = new Vector2[cubePoints.Count];
-        
 
         public MainWindow()
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
-            zBuffer = new float[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            zBuffer = new float[image.PixelHeight * image.PixelWidth];
            
             InitializeComponent();
             Loaded += MainWindow_Loaded;
@@ -107,7 +106,8 @@ namespace CornellBoxWPF
         void CompositionTarget_Rendering(object sender, object e)
         {
             CalcFrameRate();
-            Matrix4x4 rotMat = MatrixHelpers.GetXRotationMatrix(degree) * MatrixHelpers.GetYRotationMatrix(degree);
+            Matrix4x4 rotMat = MatrixHelpers.GetXRotationMatrix(degree) * 
+                MatrixHelpers.GetYRotationMatrix(degree);
 
             // Set and clean up
             Array.Clear(colourData, 0, colourData.Length);
@@ -184,31 +184,31 @@ namespace CornellBoxWPF
                                 var ac = _c - _a;
                                 Vector3 interpolatedPoint = _a + u * ab + v * ac;   // 3D Hitpoint
                                 
-                                //color = triangle._color;
-                                color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
+                                color = triangle._color;
+                                //color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
                                 //color = bitmapTexturing.GetBitmapColor(u, v, interpolatedPoint.Z, triangle);
 
                                 // Specular/Phong
-                                //color = GetDiffuseLight(interpolatedPoint, color, rotMat, triangle);
-                                color += GetSpecularLight(interpolatedPoint, rotMat, triangle);
+                                color = GetDiffuseLight(interpolatedPoint, color, rotMat, triangle);
+                                //color += GetSpecularLight(interpolatedPoint, rotMat, triangle);
 
-                                if (!float.IsInfinity(interpolatedPoint.Z) && !float.IsNaN(interpolatedPoint.Z))
+                                if (!float.IsInfinity(interpolatedPoint.Z))
                                 {
-                                    if (interpolatedPoint.Z < zBuffer[x + y * image.PixelHeight * bytesPerPixel])
+                                    if (interpolatedPoint.Z < zBuffer[x + y * image.PixelHeight])
                                     {
                                         if (printZbuffer)
                                         {
-                                            zBuffer[x + y * image.PixelHeight * bytesPerPixel] = interpolatedPoint.Z;
+                                            zBuffer[x + y * image.PixelHeight] = interpolatedPoint.Z;
                                             int Z_MIN = 0;
                                             int Z_MAX = 10;
-                                            Vector3 zcolor = ((interpolatedPoint.Z - Z_MIN) / (Z_MAX - Z_MIN) * 255) * new Vector3(1f / 255, 1f / 255, 1f / 255);
+                                            Vector3 zcolor = (interpolatedPoint.Z - Z_MIN) / (Z_MAX - Z_MIN) * byte.MaxValue * new Vector3(1f / byte.MaxValue, 1f / byte.MaxValue, 1f / byte.MaxValue);
                                             color = zcolor;
                                         }
                                     }
                                 }
                                 colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
-                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
-                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);
+                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                             }
                         }
                     }
@@ -266,10 +266,15 @@ namespace CornellBoxWPF
         }
         public static Vector3 GetInterpolatedNormal(Matrix4x4 rotMatrix, Triangle triangle)
         {
-            Matrix4x4 invertTransMatrix = Matrix4x4.Transpose(rotMatrix);
-            Matrix4x4.Invert(invertTransMatrix, out invertTransMatrix);
+            Matrix4x4 invertedMatrix = new Matrix4x4();
+            Matrix4x4.Invert(rotMatrix, out invertedMatrix);
+            Matrix4x4 invertTransMatrix =  Matrix4x4.Transpose(invertedMatrix);
+            
             Vector4 normal = Vector4.Transform(triangle._normal, invertTransMatrix);
-            return Vector3.Normalize(new Vector3(normal.X, normal.Y, normal.Z));
+            normal.W = 0;
+            normal = Vector4.Normalize(normal);
+            
+            return new Vector3(normal.X, normal.Y, normal.Z);
         }
     }
 }
