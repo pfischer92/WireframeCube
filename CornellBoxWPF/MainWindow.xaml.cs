@@ -81,7 +81,6 @@ namespace CornellBoxWPF
             -Vector4.UnitX,         // F, 5
             Vector4.UnitX,          // G, 6
             Vector4.UnitY           // H, 7
-
         };
 
         public static Vector4[] rotatedNormals;
@@ -217,29 +216,22 @@ namespace CornellBoxWPF
 
                             if (u >= 0 && v >= 0 && u + v < 1)
                             {
-                                // Calc interpolated points and normals
+                                // Calc interpolated points, normals and texture
                                 Vector3 _a = points_copy[(int)triangle._pointIdx.X];
                                 Vector3 _b = points_copy[(int)triangle._pointIdx.Y];
                                 Vector3 _c = points_copy[(int)triangle._pointIdx.Z];
 
-                                // Todo: Use coorect world coordinate
-                                //Vector3 interpolatedPoint = GetInterpolatedWorldCoordinates(_a, _b, _c, u, v);
-                                var ab = _b - _a;
-                                var ac = _c - _a;
-                                Vector3 interpolatedPoint = _a + u * ab + v * ac;
-
-
-
+                                // ToDo: Use correct world coordinate
+                                Vector3 interpolatedPoint = GetInterpolatedWorldCoordinates(_a, _b, _c, u, v);
+                                //Vector3 interpolatedPoint = _a + u * (_b - _a) + v * (_c - _a);   // for z-buffer
                                 Vector3 interpolatedNormal = GetInterpolatedNormal(triangle, u, v);
                                 Vector3 interpolatedTexture = GetInterpolatedTexture(triangle, u, v, interpolatedPoint.Z);
                                 
 
                                 //color = triangle._color;
-                                //color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
+                                color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
                                 //color = bitmapTexturing.GetBitmapColor(interpolatedTexture);
-                                color = bitmapTexturing.GetBitmapColorWithBilinearFiltering(interpolatedTexture);
-
-
+                                //color = bitmapTexturing.GetBitmapColorWithBilinearFiltering(interpolatedTexture);
 
                                 // Specular/Phong
                                 //color = GetDiffuseLight(interpolatedPoint, interpolatedNormal, color);
@@ -255,9 +247,11 @@ namespace CornellBoxWPF
                                             zBuffer[x + y * image.PixelHeight] = interpolatedPoint.Z;
                                             int Z_MIN = 0;
                                             int Z_MAX = 10;
-                                            Vector3 zcolor = (interpolatedPoint.Z - Z_MIN) / (Z_MAX - Z_MIN) * byte.MaxValue * new Vector3(1f / byte.MaxValue, 1f / byte.MaxValue, 1f / byte.MaxValue);
-                                            color = zcolor;
+                                            color = (interpolatedPoint.Z - Z_MIN) / (Z_MAX - Z_MIN) * byte.MaxValue * new Vector3(1f / byte.MaxValue, 1f / byte.MaxValue, 1f / byte.MaxValue);
                                         }
+                                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                                     }
                                 }
                                 
@@ -294,10 +288,6 @@ namespace CornellBoxWPF
                                     diffuseColorBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                                     colourData = diffuseColorBuffer;
                                 }
-
-                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
-                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
-                                colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                             }
                         }
                     }
@@ -308,9 +298,9 @@ namespace CornellBoxWPF
             if (defferedRendering)
             {
                 // Calc texture color out of textureBuffer
-                for(int x = 0; x <image.PixelWidth; x++)
+                for(int x = 0; x < image.PixelWidth - 1; x++)
                 {
-                    for(int y = 0; y < image.PixelHeight; y++)
+                    for(int y = 0; y < image.PixelHeight - 1; y++)
                     {
                         var a = textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel];
                         var b = textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1];
@@ -346,8 +336,8 @@ namespace CornellBoxWPF
         {
             Vector3 world = Vector3.Zero;
 
-            world = a + u * (b - a ) + v * (c - a);
-            //world = world / world.Z;
+            world = a + u * (b - a) + v * (c - a);
+            world = world / world.Z;
 
             return world;
         }
@@ -358,9 +348,9 @@ namespace CornellBoxWPF
 
             Vector3 vertexIdx = t._pointIdx;
 
-            Vector3 a_texture = new Vector3(textureCoord[(int)vertexIdx.X] /w, 1/w);
-            Vector3 b_texture = new Vector3(textureCoord[(int)vertexIdx.Y] /w, 1/w);
-            Vector3 c_texture = new Vector3(textureCoord[(int)vertexIdx.Z]/ w, 1/w);
+            Vector3 a_texture = new Vector3(textureCoord[(int)vertexIdx.X]/w, 1/w);
+            Vector3 b_texture = new Vector3(textureCoord[(int)vertexIdx.Y]/w, 1/w);
+            Vector3 c_texture = new Vector3(textureCoord[(int)vertexIdx.Z]/w, 1/w);
 
             interpolatedTexture = a_texture + u * (b_texture - a_texture) + v * (c_texture - a_texture);
             interpolatedTexture = interpolatedTexture / interpolatedTexture.Z;
@@ -411,7 +401,6 @@ namespace CornellBoxWPF
             interpolatedNormal = a_normal + u * (b_normal - a_normal) + v * (c_normal - a_normal);
             interpolatedNormal.W = 0;
             interpolatedNormal = Vector4.Normalize(interpolatedNormal);
-
             return new Vector3(interpolatedNormal.X, interpolatedNormal.Y, interpolatedNormal.Z);
         }
     }

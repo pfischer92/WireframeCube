@@ -102,9 +102,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="chess16.bmp">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="sample-bitmap.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
