@@ -24,9 +24,56 @@ namespace CornellBoxWPF.BitmapHelper
             return bitMapColor;
         }
 
-        public Vector3 GetBitmapColorWithBilinearFiltering(Vector3 interpolatedPoint, float u, float v)
+        public Vector3 GetBitmapColorWithBilinearFiltering(Vector3 interpolatedTexture)
         {
-            return Vector3.One;
+            // Get Color from bitmap
+            int h = bitmap.Height;
+            int w = bitmap.Width;
+            float u = interpolatedTexture.X;
+            float v = interpolatedTexture.Y;
+
+            if (u < 0)
+            {
+                u = u + 1;
+            }
+            if (v < 0)
+            {
+                v = v + 1;
+            }
+
+            float u_scaled = u * w;
+            float v_scaled = v * h;
+
+
+            /*   c1   c2   
+                 c3   c4
+                            */
+            int s1 = MathHelpers.floorMod((int)u_scaled, w);
+            int t1 = MathHelpers.floorMod((int)v_scaled + 1, h);
+            int s2 = MathHelpers.floorMod((int)u_scaled + 1, w);
+            int t2 = MathHelpers.floorMod((int)v_scaled, h);
+
+            Color c1 = bitmap.GetPixel(s1, t1);
+            Color c2 = bitmap.GetPixel(s2, t1);
+            Color c3 = bitmap.GetPixel(s1, t2);
+            Color c4 = bitmap.GetPixel(s2, t2);
+
+
+            Vector3 left_interpolation = Vector3.Lerp(
+                 new Vector3(GammaCorrection.ConvertAndClampAndGammaCorrect(c1.R), GammaCorrection.ConvertAndClampAndGammaCorrect(c1.G), GammaCorrection.ConvertAndClampAndGammaCorrect(c1.B)),
+                 new Vector3(GammaCorrection.ConvertAndClampAndGammaCorrect(c3.R), GammaCorrection.ConvertAndClampAndGammaCorrect(c3.G), GammaCorrection.ConvertAndClampAndGammaCorrect(c3.B)),
+                 u_scaled - (int)u_scaled);
+
+            Vector3 right_interpolation = Vector3.Lerp(
+                    new Vector3(GammaCorrection.ConvertAndClampAndGammaCorrect(c2.R), GammaCorrection.ConvertAndClampAndGammaCorrect(c2.G), GammaCorrection.ConvertAndClampAndGammaCorrect(c2.B)),
+                    new Vector3(GammaCorrection.ConvertAndClampAndGammaCorrect(c4.R), GammaCorrection.ConvertAndClampAndGammaCorrect(c4.G), GammaCorrection.ConvertAndClampAndGammaCorrect(c4.B)),
+                    u_scaled - (int)u_scaled);
+
+            Vector3 final_interpolation = Vector3.Lerp(left_interpolation, right_interpolation,
+                    v_scaled - (int)v_scaled);
+
+            return final_interpolation;
+            
         }
     }
 }

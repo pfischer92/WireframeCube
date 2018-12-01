@@ -18,6 +18,11 @@ namespace CornellBoxWPF
     {
         // Configs
         private static bool printZbuffer = false;
+        private static bool printPositionBuffer = false;
+        private static bool printTextureCoordBuffer = false;
+        private static bool printNormalsBuffer = false;
+        private static bool printDiffuseColorBuffer = false;
+        private static bool defferedRendering = false;
 
         // Globale Attribute
         private readonly Stopwatch stopwatch = new Stopwatch();
@@ -31,6 +36,15 @@ namespace CornellBoxWPF
         public static int _k = 40;
 
         public static byte[] colourData { get; set; }
+
+        public static byte[] positionBuffer { get; set; }
+
+        public static byte[] textureBuffer { get; set; }
+
+        public static byte[] normalsBuffer { get; set; }
+
+        public static byte[] diffuseColorBuffer { get; set; }
+        public static byte[] deferredBuffer { get; set; }
         public static float[] zBuffer { get; set; }
 
         public static double degree = 0.0;
@@ -95,6 +109,11 @@ namespace CornellBoxWPF
         {
             image = new WriteableBitmap(400, 400, 96, 96, PixelFormats.Rgb24, null);
             colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            positionBuffer = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            textureBuffer = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            normalsBuffer = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            diffuseColorBuffer = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
+            deferredBuffer = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             zBuffer = new float[image.PixelHeight * image.PixelWidth];
             rotatedNormals = new Vector4[normals.Length];
 
@@ -203,22 +222,30 @@ namespace CornellBoxWPF
                                 Vector3 _b = points_copy[(int)triangle._pointIdx.Y];
                                 Vector3 _c = points_copy[(int)triangle._pointIdx.Z];
 
-                                Vector3 interpolatedPoint = GetInterpolatedWorldCoordinates(_a, _b, _c, u, v);
+                                // Todo: Use coorect world coordinate
+                                //Vector3 interpolatedPoint = GetInterpolatedWorldCoordinates(_a, _b, _c, u, v);
+                                var ab = _b - _a;
+                                var ac = _c - _a;
+                                Vector3 interpolatedPoint = _a + u * ab + v * ac;
+
+
+
                                 Vector3 interpolatedNormal = GetInterpolatedNormal(triangle, u, v);
                                 Vector3 interpolatedTexture = GetInterpolatedTexture(triangle, u, v, interpolatedPoint.Z);
+                                
 
-
-
-                                color = triangle._color;
+                                //color = triangle._color;
                                 //color = GetInterpolatedColor(triangle, u, v, interpolatedPoint.Z);
                                 //color = bitmapTexturing.GetBitmapColor(interpolatedTexture);
+                                color = bitmapTexturing.GetBitmapColorWithBilinearFiltering(interpolatedTexture);
 
 
 
                                 // Specular/Phong
-                                color = GetDiffuseLight(interpolatedPoint, interpolatedNormal, color);
+                                //color = GetDiffuseLight(interpolatedPoint, interpolatedNormal, color);
                                 //color += GetSpecularLight(interpolatedPoint, interpolatedNormal);
 
+                                // Z buffer
                                 if (!float.IsInfinity(interpolatedPoint.Z))
                                 {
                                     if (interpolatedPoint.Z < zBuffer[x + y * image.PixelHeight])
@@ -233,11 +260,68 @@ namespace CornellBoxWPF
                                         }
                                     }
                                 }
+                                
+                                if (printPositionBuffer)
+                                {
+                                    color = interpolatedPoint;
+                                    positionBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                                    positionBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                    positionBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
+                                    colourData = positionBuffer;
+                                }
+                                if (printTextureCoordBuffer)
+                                {
+                                    color = interpolatedTexture;
+                                    textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                                    textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                    textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
+                                    colourData = textureBuffer;
+                                }
+                                if (printNormalsBuffer)
+                                {
+                                    color = interpolatedNormal;
+                                    normalsBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                                    normalsBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                    normalsBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
+                                    colourData = normalsBuffer;
+                                }
+                                if (printDiffuseColorBuffer)
+                                {
+                                    color = new Vector3(1, 1, 1);
+                                    color = GetDiffuseLight(interpolatedPoint, interpolatedNormal, color);
+                                    diffuseColorBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                                    diffuseColorBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                                    diffuseColorBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
+                                    colourData = diffuseColorBuffer;
+                                }
+
                                 colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
                                 colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
                                 colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                             }
                         }
+                    }
+                }
+            }
+
+            // Deferred Rendering
+            if (defferedRendering)
+            {
+                // Calc texture color out of textureBuffer
+                for(int x = 0; x <image.PixelWidth; x++)
+                {
+                    for(int y = 0; y < image.PixelHeight; y++)
+                    {
+                        var a = textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel];
+                        var b = textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1];
+                        var c = textureBuffer[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2];
+
+                        Vector3 interplatedTexture = new Vector3(a, b, c);
+
+                        color = bitmapTexturing.GetBitmapColor(interplatedTexture);
+                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                        colourData[x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Blue
                     }
                 }
             }
@@ -263,7 +347,7 @@ namespace CornellBoxWPF
             Vector3 world = Vector3.Zero;
 
             world = a + u * (b - a ) + v * (c - a);
-            world = world / world.Z;
+            //world = world / world.Z;
 
             return world;
         }
@@ -274,12 +358,12 @@ namespace CornellBoxWPF
 
             Vector3 vertexIdx = t._pointIdx;
 
-            Vector3 a_texture = new Vector3(textureCoord[(int)vertexIdx.X], 1/w);
-            Vector3 b_texture = new Vector3(textureCoord[(int)vertexIdx.Y], 1/w);
-            Vector3 c_texture = new Vector3(textureCoord[(int)vertexIdx.Z], 1/w);
+            Vector3 a_texture = new Vector3(textureCoord[(int)vertexIdx.X] /w, 1/w);
+            Vector3 b_texture = new Vector3(textureCoord[(int)vertexIdx.Y] /w, 1/w);
+            Vector3 c_texture = new Vector3(textureCoord[(int)vertexIdx.Z]/ w, 1/w);
 
             interpolatedTexture = a_texture + u * (b_texture - a_texture) + v * (c_texture - a_texture);
-            //interpolatedTexture = interpolatedTexture / interpolatedTexture.Z;
+            interpolatedTexture = interpolatedTexture / interpolatedTexture.Z;
 
             return interpolatedTexture;
         }
